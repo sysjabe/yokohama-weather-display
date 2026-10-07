@@ -230,7 +230,7 @@
       <span class="badge">10分ごとに自動更新</span>
     </footer>
 
-    <button class="chatgpt-launch" id="chatgptLaunch" type="button" aria-label="ChatGPTの音声会話を開始">
+    <button class="chatgpt-launch" id="chatgptLaunch" type="button" aria-label="ChatGPTの音声会話を開始" title="ChatGPT Voiceを実行（自動復帰はiPadのショートカットで設定）">
       <span class="mic">🎙</span>
       <span>ChatGPT</span>
     </button>
@@ -476,7 +476,10 @@
     chatgptLaunch.addEventListener("click", () => {
       // iPad / iPhone の「ショートカット」アプリで
       // "ChatGPT Voice" という名前のショートカットを作成してください。
-      // 中身は ChatGPT の「音声会話を開始」アクション1つでOKです。
+      // 順番：ChatGPT「音声会話を開始」→「待機：3秒」→「アプリを開く：Safari」。
+      // Safariで天気タブを表示してから実行。指定URLを開く構成も設定手順書を参照。
+      // ChatGPTのバックグラウンド会話をONにしてください。
+      // 後続処理へ進むタイミングはChatGPTアクション次第のためiPad実機で確認が必要です。
       window.location.href = "shortcuts://run-shortcut?name=ChatGPT%20Voice";
     });
   }
