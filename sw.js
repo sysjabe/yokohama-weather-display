@@ -1,4 +1,4 @@
-const CACHE = "yokohama-weather-shell-v3";
+const CACHE = "yokohama-weather-shell-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest"];
 const shellURL = new URL("./index.html", self.location.href).href;
 self.addEventListener("install", event => {
