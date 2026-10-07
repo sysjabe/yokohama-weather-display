@@ -1,68 +1,38 @@
-# 横浜市 天気ディスプレイ
+# 横浜市 天気ディスプレイ（時計拡大・7日間予報版）
 
-壁掛けAndroidタブレット＋Fully Kiosk Browserでの常時表示を想定した天気ダッシュボードです。
+公開中の元ファイルをもとに更新しています。時計を約1.7倍に拡大し、紺色の背景・現在天気・これからの天気の配置を維持しました。下にスクロールすると今日を含む7日間の天気、最高／最低気温、最大降水確率が見られます。「7日間の天気 ↓」「時計へ戻る ↑」も利用できます。
 
-## GitHub Pagesへの公開手順
+## GitHub Pagesへの上書き
 
-1. GitHubで新しいリポジトリを作成します。
-   例: `yokohama-weather-display`
-2. このZIPを展開し、以下3ファイルをリポジトリ直下へアップロードします。
-   - `index.html`
-   - `sw.js`
-   - `manifest.webmanifest`
-3. GitHubのリポジトリで `Settings` → `Pages` を開きます。
-4. `Build and deployment` の Source を `Deploy from a branch` にします。
-5. Branch を `main`、Folder を `/(root)` にして Save。
-6. 数分後、GitHub PagesのURLが表示されます。
-7. Androidタブレットの Fully Kiosk Browser の Start URL にそのURLを設定します。
+1. ZIPを解凍します。
+2. https://github.com/sysjabe/yokohama-weather-display を開き、「Add file」→「Upload files」を選びます。
+3. 中の4ファイル（index.html、sw.js、manifest.webmanifest、README.md）を、既存ファイルと同じリポジトリ直下にアップロードします。ZIPや親フォルダごとアップロードしないでください。
+4. 「Commit changes」を押し、Pagesの公開処理が完了するまで待ちます。Pages設定の変更は不要です。
+5. https://sysjabe.github.io/yokohama-weather-display/ を開いて再読み込みします。
+6. 古い画面が出る場合は、オンラインのまま10秒ほど待ってもう一度再読み込みしてください。旧版のオフラインキャッシュから新版に切り替えるために、初回は2回必要なことがあります。
 
-例:
-`https://あなたのGitHubユーザー名.github.io/yokohama-weather-display/`
+## 維持している機能
 
-## Fully Kiosk 推奨設定
+- Open-Meteo、横浜市中心部の座標、日本時間。APIキー・ビルド作業不要。
+- 10分ごとの天気更新、画面復帰時と通信復旧時の再取得。
+- 最終取得した天気データを端末内に保存。画面本体もService Workerで保存し、オフラインで再表示可能。
+- 従来の3日分キャッシュも読み込み可能。不足する日付は「予報未取得」と表示し、通信回復後に7日分へ更新。
+- 時計はオフラインでも動作。保存データには最終取得日時を表示。
+- Fully Kiosk用の全画面表示構成、相対パス、外部ライブラリ・外部フォント不要。
 
-- Start URL: GitHub Pages のURL
-- Launch on Boot: ON
-- Fullscreen Mode: ON
-- Screen Off Timer: 180～300秒
-- Motion Detection: ON
-- Turn Screen On on Motion: ON
-- JavaScript: ON
-- Webview Cache: ON
+オフライン表示には、最初にオンラインでページを開いて、天気の取得と画面の保存を完了させる必要があります。保存容量制限やブラウザーのデータ削除により保存できない場合があります。保存済み予報は最新ではありません。日付が過ぎた予報を「今日」として扱わず、未取得の日は「--」になります。
 
-## この完成版に含まれる機能
+## Fully Kiosk
 
-- 現在気温
-- 現在天気
-- 今日の最高 / 最低
-- 湿度
-- 今日の最大降水確率
-- 3時間刻みの今後4枠
-- 明日の最高 / 最低
-- 時計・日付
-- 10分ごとの自動更新
-- 画面復帰時の即時更新
-- API取得10秒タイムアウト
-- 最終取得データをlocalStorageへ保存
-- 通信断時は保存済み天気を表示
-- 最終取得時刻を表示
-- Service Workerで画面自体もオフラインキャッシュ
-- 横画面 / 縦画面対応
+Start URLは従来と同じ公開URLです。縦スクロールを禁止している設定がある場合は解除してください。画面ON/OFF、人感検知、明るさなどの端末側設定はこれまでどおり使用します。画面復帰時の取得はブラウザーのvisibilitychangeに対応しており、端末側がそのイベントを送らない場合は定期更新時に取得します。
 
-## 天気データ
+横向きタブレットを主な表示対象とし、横向きの1画面目を現在情報に使います。縦向き・小さい画面では内容に合わせて縦に伸び、週間予報は幅に応じて7列・4列・2列へ切り替わります。
 
-Open-Meteo Forecast APIを利用しています。APIキーは不要です。
+## ファイル
 
-## 位置
+- index.html：画面・スタイル・時計・天気取得処理
+- sw.js：オフライン用の画面キャッシュ（v2）
+- manifest.webmanifest：全画面表示用の設定
+- README.md：この説明書
 
-横浜市中心部付近の座標を使っています。
-
-- 緯度: 35.4437
-- 経度: 139.6380
-
-個人宅の詳細位置は使っていません。
-
-## 補足
-
-iPhoneのファイルプレビューやChatGPT内のHTMLプレビューではJavaScriptが実行されない場合があります。
-GitHub Pagesのように `https://` で配信すると正常動作します。
+データ提供・仕様：https://open-meteo.com/ / https://open-meteo.com/en/docs
