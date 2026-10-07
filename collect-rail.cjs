@@ -62,7 +62,7 @@ async function collect(){
     fallback=await browser.newPage({locale:'ja-JP'});
     await fallback.setContent(await r.text(),{waitUntil:'domcontentloaded'});
     text=await fallback.locator('#mdServiceStatus').innerText({timeout:10000});
-    status=classify(text);provider='yahoo';
+    status=classify(await fallback.locator('#mdServiceStatus dt').innerText());provider='yahoo';
     if(status!=='unknown')checkedAt=new Date().toISOString();
    }catch(e){console.warn(`tokaido fallback: ${e.message}`);}finally{if(fallback)await fallback.close();}
   }
