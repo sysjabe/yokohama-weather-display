@@ -1,0 +1,10 @@
+{
+  "name": "横浜市 天気ディスプレイ",
+  "short_name": "横浜天気",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1520",
+  "theme_color": "#0b1520",
+  "orientation": "any",
+  "lang": "ja"
+}
