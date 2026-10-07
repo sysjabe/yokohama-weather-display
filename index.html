@@ -503,10 +503,10 @@
       const status=!offline&&fresh&&Object.hasOwnProperty.call(symbols,line?.status)?line.status:'unknown';
       const when=Number.isFinite(timestamp)?new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tokyo',hour12:false}).format(timestamp):'未取得';
       const summary=status==='unknown'?(offline?'通信できないため現在の状況は未確認です。':!fresh&&Number.isFinite(timestamp)?'情報が古くなっています。公式情報をご確認ください。':'運行情報を確認できません。公式情報をご確認ください。'):(line.summary||labels[status]);
-      return {...source,status,when,summary};
+      return {...source,status,when,summary,provider:line?.provider};
     });
     document.getElementById('railMini').innerHTML=rows.map(r=>`<a class="rail-link" href="#rail-${r.id}" aria-label="${r.name} ${labels[r.status]} 詳細へ"><span>${r.name}</span><span class="rail-symbol rail-${r.status}">${symbols[r.status]}</span></a>`).join('');
-    document.getElementById('railDetails').innerHTML=rows.map(r=>`<article class="card rail-detail" id="rail-${r.id}"><h3>${r.name} <span class="rail-symbol rail-${r.status}">${symbols[r.status]}</span></h3><div class="rail-meta">${r.scope}</div><p>${escape(r.summary)}</p><p class="rail-meta">最終確認 ${r.when}${offline?'・オフライン':''}</p><a href="${r.url}" target="_blank" rel="noopener">公式の詳しい運行情報 ↗</a></article>`).join('');
+    document.getElementById('railDetails').innerHTML=rows.map(r=>`<article class="card rail-detail" id="rail-${r.id}"><h3>${r.name} <span class="rail-symbol rail-${r.status}">${symbols[r.status]}</span></h3><div class="rail-meta">${r.scope}${r.provider==='yahoo'?' · 取得元：<a href="https://transit.yahoo.co.jp/diainfo/27/0" target="_blank" rel="noopener">Yahoo!路線情報</a>':''}</div><p>${escape(r.summary)}</p><p class="rail-meta">最終確認 ${r.when}${offline?'・オフライン':''}</p><a href="${r.url}" target="_blank" rel="noopener">公式の詳しい運行情報 ↗</a></article>`).join('');
   }
   async function update(){
     if(loading)return;

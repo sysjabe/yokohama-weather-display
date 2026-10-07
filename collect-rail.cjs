@@ -23,7 +23,7 @@ async function collect(){
  const browser=await chromium.launch({headless:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});
  const lines=[];
  for(const source of sources){
-  let page;let text='';let status='unknown';let checkedAt=null;
+  let page;let text='';let status='unknown';let checkedAt=null;let provider='official';
   try{
    if(source.id==='sotetsu'){
     const r=await api.get('https://cdn.sotetsu.co.jp/unkou/dat/train_status1_v2.json');
@@ -32,7 +32,7 @@ async function collect(){
     text=data.map(x=>x.MSG).join('\n');status=classify(text);
     if(status==='normal'&&data.some(x=>x.IRREGULAR!==false))status='unknown';
    }else{
-    page=await browser.newPage({timezoneId:'Asia/Tokyo'});
+    page=await browser.newPage({timezoneId:'Asia/Tokyo',locale:'ja-JP'});
     if(source.id==='odakyu'){
      const responsePromise=page.waitForResponse(r=>r.url().includes('/service/status_detail'),{timeout:35000});
      await page.goto(source.url,{waitUntil:'domcontentloaded',timeout:35000});
@@ -51,9 +51,23 @@ async function collect(){
      if(hour>=2&&hour<4)status='unknown';
     }
    }
+   if(status==='unknown')console.warn(`${source.id}: unrecognized status ${text.slice(0,180)}`);
    if(status!=='unknown')checkedAt=new Date().toISOString();
   }catch(e){console.warn(`${source.id}: ${e.message}`);}finally{if(page)await page.close();}
-  lines.push({...source,status,summary:summarize(status,text),checkedAt});
+  if(source.id==='tokaido' && status==='unknown'){
+   let fallback;
+   try{
+    const r=await api.get('https://transit.yahoo.co.jp/diainfo/27/0');
+    if(!r.ok())throw Error('HTTP '+r.status());
+    fallback=await browser.newPage({locale:'ja-JP'});
+    await fallback.setContent(await r.text(),{waitUntil:'domcontentloaded'});
+    text=await fallback.locator('#mdServiceStatus').innerText({timeout:10000});
+    status=classify(text);provider='yahoo';
+    if(status!=='unknown')checkedAt=new Date().toISOString();
+   }catch(e){console.warn(`tokaido fallback: ${e.message}`);}finally{if(fallback)await fallback.close();}
+  }
+  const summary=summarize(status,text).replace('公式情報では',provider==='yahoo'?'Yahoo!路線情報では':'公式情報では');
+  lines.push({...source,status,summary,checkedAt,provider});
  }
  await browser.close();await api.dispose();
  const output={schemaVersion:1,generatedAt:new Date().toISOString(),lines};

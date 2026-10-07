@@ -6,8 +6,8 @@
 
 1. ZIPを解凍します。
 2. https://github.com/sysjabe/yokohama-weather-display を開き、「Add file」→「Upload files」を選びます。
-3. 中の4ファイル（index.html、sw.js、manifest.webmanifest、README.md）を、既存ファイルと同じリポジトリ直下にアップロードします。ZIPや親フォルダごとアップロードしないでください。
-4. 「Commit changes」を押し、Pagesの公開処理が完了するまで待ちます。Pages設定の変更は不要です。
+3. 画面・取得処理の6ファイル（index.html、sw.js、manifest.webmanifest、README.md、collect-rail.cjs、rail-status.json）を、既存ファイルと同じリポジトリ直下にアップロードします。ZIPや親フォルダごとアップロードしないでください。
+4. 「Commit changes」を押し、Pagesの公開処理が完了するまで待ちます。運行情報の定期更新には末尾の「自動更新の仕組み」にある設定が必要です。
 5. https://sysjabe.github.io/yokohama-weather-display/ を開いて再読み込みします。
 6. 古い画面が出る場合は、オンラインのまま10秒ほど待ってもう一度再読み込みしてください。旧版のオフラインキャッシュから新版に切り替えるために、初回は2回必要なことがあります。
 
@@ -31,7 +31,7 @@ Start URLは従来と同じ公開URLです。縦スクロールを禁止して�
 ## ファイル
 
 - index.html：画面・スタイル・時計・天気取得処理
-- sw.js：オフライン用の画面キャッシュ（v3）
+- sw.js：オフライン用の画面キャッシュ（v5）
 - manifest.webmanifest：全画面表示用の設定
 - README.md：この説明書
 
@@ -57,3 +57,5 @@ GitHubのSettings → Pages → Sourceは **GitHub Actions** を使用します�
 生成データはPages公開物に保存します。定期実行のたびにリポジトリへのコミットは増やしません。リポジトリ直下のJSONは初回用のスナップショットで、最新情報は公開ページで確認できます。
 
 公式ページの構造が変わると取得できなくなる場合があります。その場合に○と誤表示しないよう、取得失敗や認識できない表示は？にします。オフライン時も運行状況は？になります。天気のオフライン保存・時計・10分更新は従来どおりです。
+
+東海道線は、公式サイトを取得できない場合にYahoo!路線情報（東京〜熱海）を参照します。補助取得を使った場合は詳細カードに取得元を表示します。
