@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-07T10:05:24.681Z",
+  "lines": [
+    {
+      "id": "sotetsu",
+      "name": "相鉄線",
+      "scope": "相鉄線全線",
+      "url": "https://www.sotetsu.co.jp/train/status/",
+      "status": "normal",
+      "summary": "公式情報では平常運転です。",
+      "checkedAt": "2026-10-07T10:05:22.063Z"
+    },
+    {
+      "id": "tokaido",
+      "name": "東海道線",
+      "scope": "JR東日本・東京〜熱海",
+      "url": "https://traininfo.jreast.co.jp/train_info/line.aspx?gid=1&lineid=tokaidoline",
+      "status": "normal",
+      "summary": "公式情報では平常運転です。",
+      "checkedAt": "2026-10-07T10:05:22.661Z"
+    },
+    {
+      "id": "odakyu",
+      "name": "小田急線",
+      "scope": "小田急線全線",
+      "url": "https://traininfo.odakyu-rt.jp/train_status",
+      "status": "normal",
+      "summary": "公式情報では平常運転です。",
+      "checkedAt": "2026-10-07T10:05:24.589Z"
+    }
+  ]
+}

@@ -123,6 +123,16 @@
       .app{padding:20px 18px}
     }
 
+    .header-side{display:flex;flex-direction:column;gap:12px;max-width:44%;min-width:0}
+    .rail-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .rail-link{display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;padding:10px 12px;border:1px solid var(--line);border-radius:15px;background:var(--panel);white-space:nowrap;font-size:clamp(11px,1.25vw,17px)}
+    .rail-symbol{font-size:clamp(23px,2.5vw,34px);line-height:1.2;font-weight:700}
+    .rail-normal{color:var(--ok)}.rail-disrupted{color:var(--warn)}.rail-suspended{color:var(--error)}.rail-unknown{color:var(--muted)}
+    .rail-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .rail-detail{padding:24px}.rail-detail h3{margin:0 0 10px;font-size:22px}.rail-detail p{line-height:1.8}
+    .rail-detail .rail-meta{font-size:13px;color:var(--muted)}
+    .rail-section{min-height:0}
+    @media(max-width:640px){.header-side{max-width:none;width:100%}.rail-details{grid-template-columns:1fr}.rail-link{padding:9px 6px}}
     html{scroll-behavior:smooth}
     a{color:inherit}
     a:focus-visible{outline:2px solid #bedcff;outline-offset:5px}
@@ -167,9 +177,12 @@
 <body>
   <div class="app" id="top">
     <header>
+      <div class="header-side">
       <div class="card tomorrow">
         <div class="label">明日の天気</div>
         <div id="tomorrowLine">--</div>
+      </div>
+      <nav class="rail-mini" id="railMini" aria-label="鉄道の運行状況"></nav>
       </div>
       <div class="clock">
         <div id="time">--:--</div>
@@ -220,11 +233,16 @@
         <span class="dot"></span>
         <span id="statusText">起動中</span>
       </div>
-      <a class="scroll-hint" href="#weekly">7日間の天気 ↓</a>
+      <a class="scroll-hint" href="#rail-details">運行状況・7日間の天気 ↓</a>
       <span class="badge">10分ごとに自動更新</span>
     </footer>
   </div>
 
+  <section class="week rail-section" id="rail-details" aria-labelledby="rail-title">
+    <div class="week-heading"><div><h2 id="rail-title">電車の運行状況</h2><p class="week-description">○ 平常　△ 遅延・変更　× 見合わせ・運休　？ 未確認</p></div><a class="scroll-hint" href="#top">時計へ戻る ↑</a></div>
+    <div class="rail-details" id="railDetails"></div>
+    <p class="week-note">約10分間隔で取得予定。更新には遅れが生じる場合があります。30分以上確認できない情報は「？」で表示します。<br>○は公式発表上の平常運転です。小さな遅れが含まれない場合があります。利用前に各社の公式情報をご確認ください。</p>
+  </section>
   <section class="week" id="weekly" aria-labelledby="week-title">
     <div class="week-heading">
       <div><h2 id="week-title">7日間の天気</h2><p class="week-description">横浜市 · 今日から1週間の予報</p></div>
@@ -464,6 +482,51 @@
       }).catch(()=>{});
     });
   }
+})();
+(() => {
+  const SOURCES = [
+    {id:'sotetsu',name:'相鉄線',scope:'相鉄線全線',url:'https://www.sotetsu.co.jp/train/status/'},
+    {id:'tokaido',name:'東海道線',scope:'JR東日本・東京〜熱海',url:'https://traininfo.jreast.co.jp/train_info/line.aspx?gid=1&lineid=tokaidoline'},
+    {id:'odakyu',name:'小田急線',scope:'小田急線全線',url:'https://traininfo.odakyu-rt.jp/train_status'}
+  ];
+  const symbols={normal:'○',disrupted:'△',suspended:'×',unknown:'？'};
+  const labels={normal:'平常運転',disrupted:'遅延・変更',suspended:'見合わせ・運休',unknown:'未確認'};
+  const KEY='yokohama-rail-cache-v1';
+  let data=null, offline=false, loading=false;
+  const escape = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function render(){
+    const rows=SOURCES.map(source=>{
+      const line=data?.lines?.find(x=>x.id===source.id);
+      const timestamp=Date.parse(line?.checkedAt);
+      const age=Date.now()-timestamp;
+      const fresh=Number.isFinite(age)&&age>=-60000&&age<30*60*1000;
+      const status=!offline&&fresh&&Object.hasOwnProperty.call(symbols,line?.status)?line.status:'unknown';
+      const when=Number.isFinite(timestamp)?new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tokyo',hour12:false}).format(timestamp):'未取得';
+      const summary=status==='unknown'?(offline?'通信できないため現在の状況は未確認です。':!fresh&&Number.isFinite(timestamp)?'情報が古くなっています。公式情報をご確認ください。':'運行情報を確認できません。公式情報をご確認ください。'):(line.summary||labels[status]);
+      return {...source,status,when,summary};
+    });
+    document.getElementById('railMini').innerHTML=rows.map(r=>`<a class="rail-link" href="#rail-${r.id}" aria-label="${r.name} ${labels[r.status]} 詳細へ"><span>${r.name}</span><span class="rail-symbol rail-${r.status}">${symbols[r.status]}</span></a>`).join('');
+    document.getElementById('railDetails').innerHTML=rows.map(r=>`<article class="card rail-detail" id="rail-${r.id}"><h3>${r.name} <span class="rail-symbol rail-${r.status}">${symbols[r.status]}</span></h3><div class="rail-meta">${r.scope}</div><p>${escape(r.summary)}</p><p class="rail-meta">最終確認 ${r.when}${offline?'・オフライン':''}</p><a href="${r.url}" target="_blank" rel="noopener">公式の詳しい運行情報 ↗</a></article>`).join('');
+  }
+  async function update(){
+    if(loading)return;
+    loading=true;
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);
+    try{
+      const response=await fetch('./rail-status.json',{cache:'no-store',signal:controller.signal});
+      if(!response.ok)throw Error('HTTP '+response.status);
+      const next=await response.json();
+      if(next.schemaVersion!==1||!Array.isArray(next.lines)||!SOURCES.every(s=>next.lines.some(x=>x.id===s.id)))throw Error('Invalid rail data');
+      data=next;offline=false;
+      try{localStorage.setItem(KEY,JSON.stringify(data));}catch(_){}
+    }catch(_){offline=true;}finally{clearTimeout(timer);loading=false;render();}
+  }
+  try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.schemaVersion===1&&Array.isArray(saved.lines))data=saved;}catch(_){}
+  offline=!navigator.onLine;render();update();
+  setInterval(update,60*1000);setInterval(render,30*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)update();});
+  window.addEventListener('online',update);
+  window.addEventListener('offline',()=>{offline=true;render();});
 })();
 </script>
 </body>
